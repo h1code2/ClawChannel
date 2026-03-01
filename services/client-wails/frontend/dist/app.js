@@ -201,7 +201,7 @@ function renderMessages() {
     bubble.className = 'msg-bubble';
     bubble.innerHTML = `
       <div class="msg-meta">${m.from === 'me' ? 'You' : 'Assistant'} · ${fmtTime(m.ts)}</div>
-      <div>${escapeHtml(m.text).replace(/\n/g, '<br/>')}</div>
+      <div class="msg-rich">${renderRichTextLimited(m.text)}</div>
     `;
     row.appendChild(bubble);
     els.messageViewport.appendChild(row);
@@ -460,6 +460,81 @@ function escapeHtml(str) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+function sanitizeUrl(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return null;
+  try {
+    const u = new URL(s.startsWith('www.') ? `https://${s}` : s);
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString();
+  } catch (_) {}
+  return null;
+}
+
+function renderInlineRich(text) {
+  let s = escapeHtml(text);
+
+  // links: auto-link plain urls
+  s = s.replace(/(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g, (m) => {
+    const safe = sanitizeUrl(m);
+    if (!safe) return m;
+    return `<a href="${safe}" target="_blank" rel="noopener noreferrer">${m}</a>`;
+  });
+
+  // inline code
+  s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  // bold / italic / strike (limited markdown)
+  s = s.replace(/\*\*([^*\n][\s\S]*?[^*\n])\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*])\*([^*\n][\s\S]*?[^*\n])\*(?!\*)/g, '$1<em>$2</em>');
+  s = s.replace(/~~([^~\n][\s\S]*?[^~\n])~~/g, '<del>$1</del>');
+
+  return s;
+}
+
+function renderRichTextLimited(text) {
+  const src = String(text || '');
+  const lines = src.split('\n');
+  const out = [];
+  let inCode = false;
+  let codeLang = '';
+  let codeBuf = [];
+
+  const flushCode = () => {
+    if (!codeBuf.length) return;
+    const body = escapeHtml(codeBuf.join('\n'));
+    const lang = escapeHtml(codeLang || 'text');
+    out.push(`<div class="rt-code-block"><div class="msg-meta">${lang}</div><code>${body}</code></div>`);
+    codeBuf = [];
+  };
+
+  for (const line of lines) {
+    const fence = line.match(/^```\s*([^`]*)$/);
+    if (fence) {
+      if (!inCode) {
+        inCode = true;
+        codeLang = (fence[1] || '').trim();
+      } else {
+        inCode = false;
+        flushCode();
+        codeLang = '';
+      }
+      continue;
+    }
+
+    if (inCode) {
+      codeBuf.push(line);
+      continue;
+    }
+
+    out.push(renderInlineRich(line));
+  }
+
+  if (inCode) {
+    flushCode();
+  }
+
+  return out.join('<br/>');
 }
 
 (function bootstrap() {

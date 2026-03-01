@@ -149,6 +149,46 @@ html, body {
   border-bottom-left-radius: 8px;
 }
 .msg-meta { opacity: .72; font-size: 11px; margin-bottom: 4px; }
+.msg-rich {
+  font-size: 14px;
+}
+.msg-rich code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: .92em;
+  background: rgba(6, 16, 30, .55);
+  border: 1px solid rgba(71, 92, 130, .44);
+  border-radius: 7px;
+  padding: 1px 6px;
+}
+.msg-rich .rt-code-block {
+  margin: 8px 0 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(80, 103, 146, .52);
+  background: rgba(7, 17, 32, .84);
+  overflow: auto;
+}
+.msg-rich .rt-code-block code {
+  display: block;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  line-height: 1.45;
+  white-space: pre;
+}
+.msg-rich a {
+  color: #91bdff;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(145, 189, 255, .45);
+}
+.msg-rich a:hover {
+  color: #b2d2ff;
+  border-bottom-color: rgba(178, 210, 255, .8);
+}
+.msg-rich strong { font-weight: 760; }
+.msg-rich em { font-style: italic; }
+.msg-rich del { opacity: .78; }
 
 .composer-wrap {
   border-top: 1px solid var(--line);
