@@ -413,6 +413,52 @@ function openSettings(open) {
   els.settingsPanel.classList.toggle('hidden', !open);
 }
 
+function copyText(text) {
+  const content = String(text || '');
+  if (!content) return Promise.resolve(false);
+
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(content).then(() => true).catch(() => false);
+  }
+
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = content;
+    ta.setAttribute('readonly', 'readonly');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return Promise.resolve(!!ok);
+  } catch (_) {
+    return Promise.resolve(false);
+  }
+}
+
+function bindCodeCopyButtons() {
+  els.messageViewport.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.rt-copy-btn');
+    if (!btn) return;
+
+    const block = btn.closest('.rt-code-block');
+    const codeEl = block?.querySelector('code');
+    if (!codeEl) return;
+
+    const ok = await copyText(codeEl.textContent || '');
+    const origin = btn.textContent;
+    btn.textContent = ok ? '已复制' : '复制失败';
+    btn.classList.toggle('ok', ok);
+    btn.classList.toggle('err', !ok);
+
+    setTimeout(() => {
+      btn.textContent = origin || '复制';
+      btn.classList.remove('ok', 'err');
+    }, 1200);
+  });
+}
+
 function bindEvents() {
   els.newSessionBtn.onclick = createSession;
   els.sessionSearch.oninput = renderSessionList;
@@ -504,7 +550,15 @@ function renderRichTextLimited(text) {
     if (!codeBuf.length) return;
     const body = escapeHtml(codeBuf.join('\n'));
     const lang = escapeHtml(codeLang || 'text');
-    out.push(`<div class="rt-code-block"><div class="msg-meta">${lang}</div><code>${body}</code></div>`);
+    out.push(
+      `<div class="rt-code-block">` +
+        `<div class="rt-code-head">` +
+          `<span class="msg-meta">${lang}</span>` +
+          `<button class="rt-copy-btn" type="button">复制</button>` +
+        `</div>` +
+        `<code>${body}</code>` +
+      `</div>`
+    );
     codeBuf = [];
   };
 
@@ -545,6 +599,7 @@ function renderRichTextLimited(text) {
   applySidebarWidth();
   hydrateConfigUI();
   bindEvents();
+  bindCodeCopyButtons();
   bindSidebarResize();
   renderAll();
   autoGrowInput();

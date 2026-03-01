@@ -168,6 +168,36 @@ html, body {
   background: rgba(7, 17, 32, .84);
   overflow: auto;
 }
+.msg-rich .rt-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.msg-rich .rt-copy-btn {
+  border: 1px solid rgba(83, 108, 153, .65);
+  background: rgba(15, 28, 47, .84);
+  color: #d8e9ff;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all .16s ease;
+}
+.msg-rich .rt-copy-btn:hover {
+  border-color: rgba(111, 147, 208, .85);
+  color: #f2f7ff;
+}
+.msg-rich .rt-copy-btn.ok {
+  color: #b5f4ca;
+  border-color: rgba(102, 200, 140, .8);
+}
+.msg-rich .rt-copy-btn.err {
+  color: #ffd4d4;
+  border-color: rgba(230, 112, 112, .82);
+}
 .msg-rich .rt-code-block code {
   display: block;
   background: transparent;
