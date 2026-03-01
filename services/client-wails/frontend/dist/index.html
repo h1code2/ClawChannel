@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ClawChannel</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside class="sidebar">
+        <div class="brand">ClawChannel</div>
+        <div class="session-toolbar">
+          <input id="sessionSearch" class="input" placeholder="搜索会话" />
+          <button id="newSessionBtn" class="btn ghost">＋</button>
+        </div>
+        <div id="sessionList" class="session-list"></div>
+      </aside>
+
+      <div id="sidebarResizer" class="sidebar-resizer" title="拖动调整会话列表宽度"></div>
+
+      <main class="chat-shell">
+        <header class="chat-header">
+          <div>
+            <div id="chatTitle" class="chat-title">默认会话</div>
+            <div id="chatSub" class="chat-sub">未连接</div>
+          </div>
+          <button id="openSettingsBtn" class="btn ghost">设置</button>
+        </header>
+
+        <section id="messageViewport" class="messages"></section>
+
+        <footer class="composer-wrap">
+          <div class="composer">
+            <textarea id="composerInput" rows="1" placeholder="输入消息，Enter 发送，Shift+Enter 换行"></textarea>
+            <button id="sendBtn" class="btn primary">发送</button>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+    <div id="settingsPanel" class="settings-panel hidden">
+      <div class="settings-card">
+        <div class="settings-head">
+          <div>
+            <div class="settings-title">连接设置</div>
+            <div class="settings-sub">配置网关地址、鉴权 Token 与默认 Agent</div>
+          </div>
+          <button id="closeSettingsBtn" class="btn icon-btn" title="关闭">✕</button>
+        </div>
+
+        <div class="settings-grid">
+          <div class="field">
+            <label for="gatewayUrl">Gateway URL</label>
+            <input id="gatewayUrl" class="input" placeholder="ws://127.0.0.1:8099/ws" />
+            <div class="field-hint">支持 <code>ws://</code> 与 <code>wss://</code>。</div>
+          </div>
+
+          <div class="field">
+            <label for="gatewayToken">Token</label>
+            <input id="gatewayToken" class="input" placeholder="token" />
+            <div class="field-hint">用于 Gateway 鉴权，留空时按网关配置决定。</div>
+          </div>
+
+          <div class="field field-inline">
+            <label for="agentSelect">默认 Agent</label>
+            <div class="select-wrap">
+              <select id="agentSelect" class="input agent-select">
+                <option value="main">main</option>
+                <option value="developer">developer</option>
+                <option value="daily">daily</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button id="disconnectBtn" class="btn danger soft">断开连接</button>
+          <button id="connectBtn" class="btn primary">保存并连接</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

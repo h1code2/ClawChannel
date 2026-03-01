@@ -1,0 +1,19 @@
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
+
+# Runtime data & secrets
+**/.env
+**/data/
+
+# Build artifacts
+**/clawchannel-gateway
+**/build/
+**/dist/bin/
+
+# Node / frontend deps
+**/node_modules/
+
+# Logs
+*.log

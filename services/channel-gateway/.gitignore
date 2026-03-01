@@ -1,0 +1,6 @@
+# Binaries
+clawchannel-gateway
+
+# Build cache
+*.test
+*.out
