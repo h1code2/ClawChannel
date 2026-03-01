@@ -41,6 +41,7 @@
   - [x] 处理 `command`
   - [x] 处理 `ack`
   - [x] 处理 `error`
+  - [x] 展示 assistant 回复
   - [x] assistant stream 分片拼接
 
 ### 1.2 可选（非必须）

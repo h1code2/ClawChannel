@@ -25,7 +25,7 @@ go run .
 - `DEFAULT_AGENT`：默认 agent，默认 `main`
 - `OPENCLAW_BIN`：默认 `openclaw`
 - `DATA_DIR`：消息落盘目录，默认 `./data`
-- `ENABLE_STREAMING`：`true/false`，默认 `false`
+- `ENABLE_STREAMING`：`true/false`，默认 `true`
 
 ### 鉴权
 - `AUTH_MODE=token`（默认）

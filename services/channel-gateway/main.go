@@ -121,7 +121,7 @@ func main() {
 		authMode:          strings.ToLower(envOr("AUTH_MODE", "token")),
 		jwtSecret:         strings.TrimSpace(os.Getenv("JWT_SECRET")),
 		dataDir:           envOr("DATA_DIR", "./data"),
-		enableStream:      strings.EqualFold(envOr("ENABLE_STREAMING", "false"), "true"),
+		enableStream:      strings.EqualFold(envOr("ENABLE_STREAMING", "true"), "true"),
 		oauthClientID:     strings.TrimSpace(os.Getenv("OAUTH_CLIENT_ID")),
 		oauthClientSecret: strings.TrimSpace(os.Getenv("OAUTH_CLIENT_SECRET")),
 		sessions:          make(map[string]*Session),
