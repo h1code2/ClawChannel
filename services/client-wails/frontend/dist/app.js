@@ -29,7 +29,8 @@ const state = {
   reconnectAttempt: 0,
   reconnectEnabled: true,
   ui: {
-    sidebarWidth: 320
+    sidebarWidth: 320,
+    hasSavedConfig: false
   },
   config: {
     gatewayUrl: 'ws://127.0.0.1:8099/ws',
@@ -54,6 +55,13 @@ function loadState() {
       }));
     }
     state.selectedSessionId = saved?.selectedSessionId || state.sessions[0]?.id;
+
+    // Backward compatibility: old state may have config but no hasSavedConfig flag.
+    if (!saved?.ui || typeof saved.ui.hasSavedConfig === 'undefined') {
+      if ((state.config.gatewayUrl || '').trim() !== '') {
+        state.ui.hasSavedConfig = true;
+      }
+    }
   } catch (_) {}
 }
 
@@ -425,6 +433,7 @@ function bindEvents() {
     state.config.gatewayUrl = els.gatewayUrl.value.trim();
     state.config.token = els.gatewayToken.value.trim();
     state.config.agent = els.agentSelect.value;
+    state.ui.hasSavedConfig = true;
     saveState();
     connectWS();
     openSettings(false);
@@ -465,4 +474,15 @@ function escapeHtml(str) {
   renderAll();
   autoGrowInput();
   setConnectionText('未连接');
+
+  if (state.ui.hasSavedConfig) {
+    state.reconnectEnabled = true;
+    setTimeout(() => {
+      try {
+        connectWS();
+      } catch (err) {
+        setConnectionText(`自动连接失败: ${err?.message || err}`);
+      }
+    }, 180);
+  }
 })();
