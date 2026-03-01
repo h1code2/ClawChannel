@@ -22,7 +22,7 @@ const els = {
 const STORAGE_KEY = 'clawchannel.wails.state.v1';
 
 const state = {
-  sessions: [{ id: crypto.randomUUID(), name: '默认会话', messages: [] }],
+  sessions: [{ id: crypto.randomUUID(), name: '默认会话', agentId: 'main', messages: [] }],
   selectedSessionId: null,
   ws: null,
   reconnectTimer: null,
@@ -35,7 +35,7 @@ const state = {
   config: {
     gatewayUrl: 'ws://127.0.0.1:8099/ws',
     token: '',
-    agent: 'main'
+    defaultAgent: 'main'
   },
   connectionText: '未连接'
 };
@@ -46,11 +46,18 @@ function loadState() {
     if (!raw) return;
     const saved = JSON.parse(raw);
     if (saved?.config) state.config = { ...state.config, ...saved.config };
+
+    // Backward compatibility: old state uses config.agent.
+    if (typeof state.config.defaultAgent !== 'string' || !state.config.defaultAgent.trim()) {
+      state.config.defaultAgent = String(saved?.config?.agent || 'main');
+    }
+
     if (saved?.ui) state.ui = { ...state.ui, ...saved.ui };
     if (Array.isArray(saved?.sessions) && saved.sessions.length > 0) {
       state.sessions = saved.sessions.map((s) => ({
         id: s.id || crypto.randomUUID(),
         name: s.name || '会话',
+        agentId: (s.agentId || state.config.defaultAgent || 'main'),
         messages: Array.isArray(s.messages) ? s.messages : []
       }));
     }
@@ -90,10 +97,16 @@ function currentSession() {
   return state.sessions.find((s) => s.id === state.selectedSessionId) || state.sessions[0];
 }
 
+function currentAgentId() {
+  const s = currentSession();
+  return s?.agentId || state.config.defaultAgent || 'main';
+}
+
 function setConnectionText(text) {
   state.connectionText = text;
   const s = currentSession();
-  els.chatSub.textContent = `${text} · Agent ${state.config.agent}`;
+  const agent = currentAgentId();
+  els.chatSub.textContent = `${text} · Agent ${agent}`;
   if (s) {
     els.chatTitle.textContent = s.name;
   }
@@ -180,8 +193,17 @@ function renderSessionList() {
     `;
     btn.onclick = () => {
       state.selectedSessionId = s.id;
+      if (els.agentSelect) {
+        els.agentSelect.value = currentAgentId();
+      }
       renderAll();
       saveState();
+
+      if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+        try {
+          sendEnvelope('agent.select', { agentId: currentAgentId() }, false);
+        } catch (_) {}
+      }
     };
     els.sessionList.appendChild(btn);
   }
@@ -191,7 +213,7 @@ function renderMessages() {
   const s = currentSession();
   if (!s) return;
   els.chatTitle.textContent = s.name;
-  els.chatSub.textContent = `${state.connectionText} · Agent ${state.config.agent}`;
+  els.chatSub.textContent = `${state.connectionText} · Agent ${currentAgentId()}`;
   els.messageViewport.innerHTML = '';
 
   for (const m of s.messages) {
@@ -299,7 +321,7 @@ function connectWS() {
     if (state.config.token) {
       sendEnvelope('auth', { token: state.config.token }, false);
     }
-    sendEnvelope('agent.select', { agentId: state.config.agent }, false);
+    sendEnvelope('agent.select', { agentId: currentAgentId() }, false);
   };
 
   ws.onmessage = (evt) => {
@@ -387,7 +409,7 @@ function sendText() {
   if (!text) return;
   addMessage('me', text, 'user_message');
   try {
-    sendEnvelope('event', { eventType: 'user_message', text, agentId: state.config.agent }, true);
+    sendEnvelope('event', { eventType: 'user_message', text, agentId: currentAgentId() }, true);
   } catch (err) {
     addMessage('assistant', `⚠️ ${err.message || err}`);
   }
@@ -403,8 +425,16 @@ function autoGrowInput() {
 
 function createSession() {
   const id = crypto.randomUUID();
-  state.sessions.unshift({ id, name: `会话 ${state.sessions.length + 1}`, messages: [] });
+  state.sessions.unshift({
+    id,
+    name: `会话 ${state.sessions.length + 1}`,
+    agentId: state.config.defaultAgent || 'main',
+    messages: []
+  });
   state.selectedSessionId = id;
+  if (els.agentSelect) {
+    els.agentSelect.value = currentAgentId();
+  }
   renderAll();
   saveState();
 }
@@ -478,7 +508,14 @@ function bindEvents() {
     state.reconnectEnabled = true;
     state.config.gatewayUrl = els.gatewayUrl.value.trim();
     state.config.token = els.gatewayToken.value.trim();
-    state.config.agent = els.agentSelect.value;
+
+    const selectedAgent = (els.agentSelect.value || 'main').trim() || 'main';
+    state.config.defaultAgent = selectedAgent;
+    const s = currentSession();
+    if (s) {
+      s.agentId = selectedAgent;
+    }
+
     state.ui.hasSavedConfig = true;
     saveState();
     connectWS();
@@ -496,7 +533,7 @@ function bindEvents() {
 function hydrateConfigUI() {
   els.gatewayUrl.value = state.config.gatewayUrl;
   els.gatewayToken.value = state.config.token;
-  els.agentSelect.value = state.config.agent;
+  els.agentSelect.value = currentAgentId();
 }
 
 function escapeHtml(str) {
